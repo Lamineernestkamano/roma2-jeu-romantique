@@ -3,7 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
-const nodemailer = require("nodemailer");
+const https = require("https");
 
 const app = express();
 
@@ -26,7 +26,7 @@ function loadResponses() {
         );
     } catch (error) {
         console.error(
-            "Erreur de lecture de la base de données :",
+            "Erreur de lecture des réponses :",
             error
         );
 
@@ -67,92 +67,217 @@ function escapeHtml(value) {
     );
 }
 
-async function sendEmail(response) {
 
-    if (
-        !process.env.SMTP_HOST ||
-        !process.env.SMTP_USER ||
-        !process.env.SMTP_PASS ||
-        !process.env.NOTIFY_EMAIL
-    ) {
-        console.log(
-            "Email non configuré. La réponse est enregistrée."
-        );
+/* ==============================
+   ENVOI EMAIL AVEC RESEND
+============================== */
 
-        return;
-    }
+function sendEmail(response) {
 
-    const transporter =
-        nodemailer.createTransport({
+    return new Promise(
+        function (resolve, reject) {
 
-            host:
-                process.env.SMTP_HOST,
+            const apiKey =
+                process.env.RESEND_API_KEY;
 
-            port:
-                Number(
-                    process.env.SMTP_PORT || 587
-                ),
+            const notifyEmail =
+                process.env.NOTIFY_EMAIL;
 
-            secure:
-                String(
-                    process.env.SMTP_SECURE || "false"
-                ) === "true",
+            if (
+                !apiKey ||
+                !notifyEmail
+            ) {
 
-            auth: {
-                user:
-                    process.env.SMTP_USER,
+                console.log(
+                    "RESEND_API_KEY ou NOTIFY_EMAIL manquant."
+                );
 
-                pass:
-                    process.env.SMTP_PASS
+                return resolve();
+
             }
 
-        });
+
+            const formattedDate =
+                new Date(
+                    response.date +
+                    "T00:00:00"
+                ).toLocaleDateString(
+                    "fr-FR",
+                    {
+                        weekday:
+                            "long",
+
+                        day:
+                            "numeric",
+
+                        month:
+                            "long",
+
+                        year:
+                            "numeric"
+                    }
+                );
 
 
-    const formattedDate =
-        new Date(
-            response.date + "T00:00:00"
-        ).toLocaleDateString(
-            "fr-FR",
-            {
-                weekday: "long",
-                day: "numeric",
-                month: "long",
-                year: "numeric"
-            }
-        );
+            const emailData =
+                JSON.stringify({
 
+                    from:
+                        "onboarding@resend.dev",
 
-    await transporter.sendMail({
+                    to:
+                        [notifyEmail],
 
-        from:
-            process.env.MAIL_FROM ||
-            process.env.SMTP_USER,
+                    subject:
+                        "❤️ Nouvelle réponse de Hadiatou",
 
-        to:
-            process.env.NOTIFY_EMAIL,
+                    html:
 
-        subject:
-            "❤️ Nouvelle réponse de Hadiatou",
+`
+<h2>❤️ Hadiatou a répondu à ton invitation</h2>
 
-        text:
+<p>
+<strong>Date :</strong>
+${escapeHtml(formattedDate)}
+</p>
 
-`Hadiatou a répondu à ton invitation ❤️
+<p>
+<strong>Heure :</strong>
+${escapeHtml(response.time)}
+</p>
 
-Date : ${formattedDate}
+<p>
+<strong>Lieu :</strong>
+${escapeHtml(response.place)}
+</p>
 
-Heure : ${response.time}
+<p>
+<strong>Message :</strong>
+${escapeHtml(
+    response.note ||
+    "(aucun message)"
+)}
+</p>
 
-Lieu : ${response.place}
+<hr>
 
-Message :
-${response.note || "(aucun message)"}
-
+<p>
 Réponse reçue le :
-${response.created_at}
+${escapeHtml(
+    response.created_at
+)}
+</p>
 `
 
-    });
+                });
+
+
+            const request =
+                https.request(
+
+                    {
+                        hostname:
+                            "api.resend.com",
+
+                        path:
+                            "/emails",
+
+                        method:
+                            "POST",
+
+                        headers:
+                            {
+                                "Authorization":
+                                    "Bearer " +
+                                    apiKey,
+
+                                "Content-Type":
+                                    "application/json",
+
+                                "Content-Length":
+                                    Buffer.byteLength(
+                                        emailData
+                                    )
+                            }
+                    },
+
+                    function (res) {
+
+                        let body =
+                            "";
+
+
+                        res.on(
+                            "data",
+                            function (chunk) {
+
+                                body +=
+                                    chunk;
+
+                            }
+                        );
+
+
+                        res.on(
+                            "end",
+                            function () {
+
+                                if (
+                                    res.statusCode >= 200 &&
+                                    res.statusCode < 300
+                                ) {
+
+                                    console.log(
+                                        "Email envoyé avec succès via Resend."
+                                    );
+
+                                    resolve();
+
+                                } else {
+
+                                    console.error(
+                                        "Erreur Resend :",
+                                        res.statusCode,
+                                        body
+                                    );
+
+                                    reject(
+                                        new Error(
+                                            "Erreur Resend " +
+                                            res.statusCode
+                                        )
+                                    );
+
+                                }
+
+                            }
+                        );
+
+                    }
+                );
+
+
+            request.on(
+                "error",
+                function (error) {
+
+                    reject(
+                        error
+                    );
+
+                }
+            );
+
+
+            request.write(
+                emailData
+            );
+
+
+            request.end();
+
+        }
+    );
 
 }
 
@@ -511,7 +636,7 @@ ${
 
 
 /* ==============================
-   LANCEMENT DU SERVEUR
+   LANCEMENT
 ============================== */
 
 app.listen(
