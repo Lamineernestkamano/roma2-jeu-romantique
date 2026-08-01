@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Une lettre pour Hadiatou ❤️</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:Georgia,"Times New Roman",serif;background:linear-gradient(135deg,#f7eee9,#ead6d2);color:#3d252c;overflow:hidden}.hearts{position:fixed;inset:0;pointer-events:none;overflow:hidden}.heart{position:absolute;bottom:-30px;font-size:20px;animation:float 7s linear infinite;opacity:.65}@keyframes float{0%{transform:translateY(0) rotate(0);opacity:0}15%{opacity:.7}100%{transform:translateY(-110vh) rotate(360deg);opacity:0}}.card{width:min(92%,620px);min-height:520px;padding:42px 28px;background:rgba(255,252,249,.94);border:1px solid rgba(120,60,75,.12);box-shadow:0 20px 60px rgba(75,35,45,.18);text-align:center;position:relative;z-index:2;display:flex;align-items:center;justify-content:center}.screen{display:none;width:100%;animation:fade .55s ease}.screen.active{display:block}@keyframes fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}.small{letter-spacing:4px;text-transform:uppercase;font-size:12px;color:#865568;font-weight:bold}h1{font-size:clamp(30px,7vw,52px);font-style:italic;line-height:1.15;margin:20px 0}p{font-size:17px;line-height:1.6}.envelope{width:210px;height:140px;margin:25px auto;position:relative;background:#ead4d2;border:1px solid #d5b8b7;box-shadow:0 15px 30px rgba(80,40,50,.12);cursor:pointer}.envelope:before{content:"";position:absolute;inset:0;background:linear-gradient(145deg,transparent 49%,#d9bcbc 50%,transparent 51%),linear-gradient(35deg,transparent 49%,#d9bcbc 50%,transparent 51%)}.seal{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:50px;height:50px;border-radius:50%;background:#7d2948;color:white;display:grid;place-items:center;font-size:23px;box-shadow:0 5px 15px #7d294855}button{border:0;padding:14px 28px;margin:8px;border-radius:3px;font-family:inherit;font-size:16px;cursor:pointer;transition:.2s}button:hover{transform:translateY(-2px);box-shadow:0 8px 18px #7d294833}.primary{background:#7d2948;color:white}.secondary{background:white;border:1px solid #b99b9f;color:#542b39}.choice-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:22px 0}.choice{min-width:130px}.choice.selected{background:#7d2948;color:white}input,textarea{width:100%;padding:14px;border:1px solid #d5c1c3;background:#fffaf8;border-radius:4px;font-family:inherit;color:#3d252c;margin:7px 0 14px;outline:none}input:focus,textarea:focus{border-color:#7d2948}label{display:block;text-align:left;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:#76505d;margin-top:8px}.result{background:#f8eeed;padding:25px;margin:20px 0;border:1px solid #ead5d5}#noBtn{position:relative}.error{color:#9d1f3c;font-size:14px;min-height:20px}@media(max-width:480px){.card{min-height:580px;padding:30px 20px}.envelope{width:180px;height:120px}}
+</style>
+</head>
+<body>
+<div class="hearts" id="hearts"></div>
+<main class="card">
+<section class="screen active" id="s1">
+<div class="small">Une petite surprise pour toi ❤️</div>
+<h1>Pour toi, Hadiatou</h1>
+<p>Touche la lettre pour découvrir ton invitation...</p>
+<div class="envelope" onclick="go(2)" aria-label="Ouvrir la lettre"><div class="seal">♡</div></div>
+<div class="small">Touche la lettre</div>
+</section>
+<section class="screen" id="s2">
+<div class="small">Pour toi, Hadiatou</div>
+<h1>Ça te dit un date avec moi ?</h1>
+<p>Une petite sortie rien que pour nous deux... ❤️</p>
+<button class="secondary" id="noBtn" onclick="moveNo()">Non</button>
+<button class="primary" onclick="go(3)">Oui ❤️</button>
+</section>
+<section class="screen" id="s3">
+<div class="small">Notre petit rendez-vous</div>
+<h1>Choisis une date</h1>
+<label for="date">La date</label>
+<input id="date" type="date">
+<label>Le lieu</label>
+<div class="choice-grid">
+<button class="secondary choice" onclick="selectPlace(this,'Chez moi ❤️')">Chez moi ❤️</button>
+<button class="secondary choice" onclick="selectPlace(this,'Chez toi 🏠')">Chez toi 🏠</button>
+<button class="secondary choice" onclick="selectPlace(this,'Au resto 🍽️')">Au resto 🍽️</button>
+</div>
+<label for="time">L'heure</label>
+<input id="time" type="time">
+<label for="note">Un petit mot pour moi (facultatif)</label>
+<textarea id="note" rows="3" placeholder="Écris-moi quelque chose... ❤️"></textarea>
+<div class="error" id="error"></div>
+<button class="primary" id="confirmBtn" onclick="confirmDate()">Confirmer ❤️</button>
+</section>
+<section class="screen" id="s4">
+<div class="small">Parfait ❤️</div>
+<h1>C'est noté !</h1>
+<div class="result" id="result"></div>
+<p><em>Je t'aime mon amour ❤️</em></p>
+<p class="small">— Lamine Ernest Kamano</p>
+</section>
+</main>
+<script>
+let place="";
+function go(n){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById("s"+n).classList.add("active")}
+function selectPlace(button,value){place=value;document.querySelectorAll(".choice").forEach(btn=>btn.classList.remove("selected"));button.classList.add("selected")}
+function moveNo(){const b=document.getElementById("noBtn");const x=Math.random()*160-80,y=Math.random()*100-50;b.style.transform=`translate(${x}px,${y}px)`}
+function escapeHtml(text){const div=document.createElement("div");div.textContent=text;return div.innerHTML}
+async function confirmDate(){
+ const date=document.getElementById("date").value,time=document.getElementById("time").value,note=document.getElementById("note").value.trim(),error=document.getElementById("error"),btn=document.getElementById("confirmBtn");
+ error.textContent="";
+ if(!date||!time||!place){error.textContent="Choisis une date, une heure et un lieu ❤️";return}
+ btn.disabled=true;btn.textContent="Envoi en cours...";
+ try{
+  const response=await fetch("/api/responses",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({date,time,place,note})});
+  const data=await response.json();
+  if(!response.ok)throw new Error(data.error||"Erreur");
+  const d=new Date(date+"T00:00:00");
+  const formatted=d.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  document.getElementById("result").innerHTML=`<strong>${formatted} à ${escapeHtml(time)}</strong><br><br>${escapeHtml(place)}${note?`<br><br><em>« ${escapeHtml(note)} »</em>`:""}<br><br><span>Ta réponse a bien été envoyée ❤️</span>`;
+  go(4);
+ }catch(e){error.textContent="Impossible d'envoyer la réponse. Réessaie dans un instant ❤️";btn.disabled=false;btn.textContent="Confirmer ❤️"}
+}
+for(let i=0;i<18;i++){const h=document.createElement("span");h.className="heart";h.textContent="♥";h.style.left=Math.random()*100+"%";h.style.animationDelay=Math.random()*7+"s";h.style.fontSize=(12+Math.random()*20)+"px";document.getElementById("hearts").appendChild(h)}
+</script>
+</body>
+</html>

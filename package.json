@@ -1,0 +1,15 @@
+{
+  "name": "roma2-romantic-game",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Jeu romantique avec base de données et notification email",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "nodemailer": "^6.10.0"
+  }
+}
